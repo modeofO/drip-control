@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Irrigation Controller — Circuit Diagram</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1a1a2e; font-family: 'Courier New', monospace; overflow: auto; }
+  h1 { color: #e0e0e0; text-align: center; padding: 20px 20px 10px; font-size: 18px; }
+  .legend { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.85); color: #aaa; padding: 14px 16px; border-radius: 6px; font-size: 12px; z-index: 10; border: 1px solid #333; }
+  .legend div { margin: 5px 0; }
+  .legend span { display: inline-block; width: 16px; height: 16px; border-radius: 2px; vertical-align: middle; margin-right: 8px; }
+  svg { display: block; margin: 0 auto; }
+</style>
+</head>
+<body>
+<h1>Solar-Powered STM32F411 Irrigation Controller</h1>
+<div class="legend">
+  <div><span style="background:#4fc3f7"></span>3.3V Rail</div>
+  <div><span style="background:#ff8a65"></span>3.7V Battery Rail</div>
+  <div><span style="background:#ef5350"></span>12V Boost Rail</div>
+  <div><span style="background:#66bb6a"></span>Signal / GPIO</div>
+  <div><span style="background:#888"></span>GND</div>
+</div>
+
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1400" viewBox="0 0 1800 1400">
+
+  <!-- ================================================================ -->
+  <!-- ROW 1: POWER SUPPLY CHAIN (y: 40–200) -->
+  <!-- ================================================================ -->
+
+  <!-- SOLAR PANEL -->
+  <circle cx="105" cy="35" r="10" fill="none" stroke="#ffd54f" stroke-width="1.5"/>
+  <line x1="105" y1="20" x2="105" y2="15" stroke="#ffd54f" stroke-width="1.5"/>
+  <line x1="105" y1="50" x2="105" y2="55" stroke="#ffd54f" stroke-width="1.5"/>
+  <line x1="90" y1="35" x2="85" y2="35" stroke="#ffd54f" stroke-width="1.5"/>
+  <line x1="120" y1="35" x2="125" y2="35" stroke="#ffd54f" stroke-width="1.5"/>
+  <rect x="50" y="65" width="160" height="80" rx="6" fill="none" stroke="#ffd54f" stroke-width="2"/>
+  <text x="130" y="100" text-anchor="middle" fill="#ffd54f" font-size="16" font-family="Courier New" font-weight="bold">6V 5W</text>
+  <text x="130" y="122" text-anchor="middle" fill="#ffd54f" font-size="12" font-family="Courier New">Solar Panel</text>
+
+  <!-- Solar → TP4056 wires -->
+  <line x1="210" y1="90" x2="300" y2="90" stroke="#ffd54f" stroke-width="2"/>
+  <text x="250" y="84" fill="#ffd54f" font-size="10" font-family="Courier New">+</text>
+  <line x1="210" y1="120" x2="300" y2="120" stroke="#888" stroke-width="2"/>
+  <text x="250" y="136" fill="#888" font-size="10" font-family="Courier New">−</text>
+
+  <!-- TP4056 -->
+  <rect x="300" y="65" width="190" height="80" rx="6" fill="none" stroke="#ff8a65" stroke-width="2"/>
+  <text x="395" y="95" text-anchor="middle" fill="#ff8a65" font-size="15" font-family="Courier New" font-weight="bold">TP4056</text>
+  <text x="395" y="115" text-anchor="middle" fill="#ff8a65" font-size="11" font-family="Courier New">Li-ion Charger w/ prot.</text>
+  <text x="308" y="82" fill="#aaa" font-size="9" font-family="Courier New">IN+</text>
+  <text x="308" y="140" fill="#aaa" font-size="9" font-family="Courier New">IN−</text>
+  <text x="460" y="82" fill="#aaa" font-size="9" font-family="Courier New">OUT+</text>
+  <text x="460" y="140" fill="#aaa" font-size="9" font-family="Courier New">OUT−</text>
+
+  <!-- 18650 below TP4056 -->
+  <line x1="395" y1="145" x2="395" y2="190" stroke="#ff8a65" stroke-width="2"/>
+  <text x="408" y="175" fill="#aaa" font-size="10" font-family="Courier New">BAT+/−</text>
+  <rect x="340" y="190" width="130" height="60" rx="6" fill="none" stroke="#ff8a65" stroke-width="2"/>
+  <text x="405" y="218" text-anchor="middle" fill="#ff8a65" font-size="14" font-family="Courier New" font-weight="bold">18650</text>
+  <text x="405" y="238" text-anchor="middle" fill="#ff8a65" font-size="11" font-family="Courier New">3.7V  2.5Ah</text>
+
+  <!-- TP4056 OUT+ → 3.7V Rail -->
+  <line x1="490" y1="78" x2="560" y2="78" stroke="#ff8a65" stroke-width="3"/>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- 3.7V RAIL (horizontal bus) -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <line x1="560" y1="78" x2="1050" y2="78" stroke="#ff8a65" stroke-width="4"/>
+  <text x="780" y="65" fill="#ff8a65" font-size="15" font-family="Courier New" font-weight="bold">3.7V Rail</text>
+
+  <!-- ================================================================ -->
+  <!-- ROW 2: REGULATORS (y: 300–400) -->
+  <!-- ================================================================ -->
+
+  <!-- Drop to LDO -->
+  <line x1="680" y1="78" x2="680" y2="310" stroke="#ff8a65" stroke-width="2"/>
+  <rect x="610" y="310" width="160" height="70" rx="6" fill="none" stroke="#4fc3f7" stroke-width="2"/>
+  <text x="690" y="342" text-anchor="middle" fill="#4fc3f7" font-size="15" font-family="Courier New" font-weight="bold">MCP1700</text>
+  <text x="690" y="364" text-anchor="middle" fill="#4fc3f7" font-size="11" font-family="Courier New">LDO → 3.3V</text>
+  <text x="618" y="332" fill="#aaa" font-size="10" font-family="Courier New">IN</text>
+  <text x="742" y="332" fill="#aaa" font-size="10" font-family="Courier New">OUT</text>
+
+  <!-- Drop to Boost -->
+  <line x1="980" y1="78" x2="980" y2="310" stroke="#ff8a65" stroke-width="2"/>
+  <rect x="900" y="310" width="170" height="70" rx="6" fill="none" stroke="#ef5350" stroke-width="2"/>
+  <text x="985" y="342" text-anchor="middle" fill="#ef5350" font-size="15" font-family="Courier New" font-weight="bold">DFR0123</text>
+  <text x="985" y="364" text-anchor="middle" fill="#ef5350" font-size="11" font-family="Courier New">Boost → 12V</text>
+  <text x="908" y="332" fill="#aaa" font-size="10" font-family="Courier New">IN</text>
+  <text x="1042" y="332" fill="#aaa" font-size="10" font-family="Courier New">OUT</text>
+
+  <!-- 1000µF cap on boost output -->
+  <line x1="1070" y1="345" x2="1120" y2="345" stroke="#ef5350" stroke-width="1.5"/>
+  <rect x="1120" y="330" width="80" height="30" rx="3" fill="none" stroke="#ef5350" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="1160" y="350" text-anchor="middle" fill="#ef5350" font-size="10" font-family="Courier New">1000µF</text>
+  <line x1="1200" y1="345" x2="1230" y2="345" stroke="#888" stroke-width="1.5"/>
+  <!-- GND symbol -->
+  <line x1="1220" y1="340" x2="1240" y2="340" stroke="#888" stroke-width="2"/>
+  <line x1="1223" y1="345" x2="1237" y2="345" stroke="#888" stroke-width="1.5"/>
+  <line x1="1226" y1="350" x2="1234" y2="350" stroke="#888" stroke-width="1"/>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- 3.3V RAIL -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <line x1="690" y1="380" x2="690" y2="440" stroke="#4fc3f7" stroke-width="2"/>
+  <line x1="120" y1="440" x2="800" y2="440" stroke="#4fc3f7" stroke-width="4"/>
+  <text x="440" y="428" fill="#4fc3f7" font-size="15" font-family="Courier New" font-weight="bold">3.3V Rail</text>
+
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- 12V RAIL -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <line x1="985" y1="380" x2="985" y2="440" stroke="#ef5350" stroke-width="2"/>
+  <line x1="985" y1="440" x2="1350" y2="440" stroke="#ef5350" stroke-width="4"/>
+  <text x="1150" y="428" fill="#ef5350" font-size="15" font-family="Courier New" font-weight="bold">12V Rail</text>
+
+  <!-- ================================================================ -->
+  <!-- ROW 3: MCU (y: 540–880) -->
+  <!-- ================================================================ -->
+  <rect x="300" y="540" width="340" height="340" rx="8" fill="#16213e" stroke="#4fc3f7" stroke-width="2.5"/>
+  <text x="470" y="580" text-anchor="middle" fill="#4fc3f7" font-size="18" font-family="Courier New" font-weight="bold">NUCLEO-F411RE</text>
+  <text x="470" y="605" text-anchor="middle" fill="#aaa" font-size="12" font-family="Courier New">STM32F411 — Cortex-M4F</text>
+
+  <!-- Left pins -->
+  <circle cx="300" cy="660" r="5" fill="#66bb6a"/>
+  <text x="318" y="665" fill="#66bb6a" font-size="13" font-family="Courier New">A0 (PA0)</text>
+  <circle cx="300" cy="700" r="5" fill="#66bb6a"/>
+  <text x="318" y="705" fill="#66bb6a" font-size="13" font-family="Courier New">A1 (PA1)</text>
+  <circle cx="300" cy="740" r="5" fill="#66bb6a"/>
+  <text x="318" y="745" fill="#66bb6a" font-size="13" font-family="Courier New">A2 (PA4)</text>
+
+  <!-- Right pins -->
+  <circle cx="640" cy="660" r="5" fill="#66bb6a"/>
+  <text x="510" y="665" fill="#66bb6a" font-size="13" font-family="Courier New">D2 (PA10)</text>
+  <circle cx="640" cy="700" r="5" fill="#66bb6a"/>
+  <text x="510" y="705" fill="#66bb6a" font-size="13" font-family="Courier New">D3 (PB3)</text>
+  <circle cx="640" cy="740" r="5" fill="#66bb6a"/>
+  <text x="510" y="745" fill="#66bb6a" font-size="13" font-family="Courier New">D4 (PB5)</text>
+
+  <!-- Power pins -->
+  <text x="318" y="800" fill="#4fc3f7" font-size="13" font-family="Courier New">3.3V IN</text>
+  <text x="318" y="830" fill="#888" font-size="13" font-family="Courier New">GND</text>
+  <text x="380" y="860" fill="#e0e0e0" font-size="11" font-family="Courier New">IWDG (internal 30s watchdog)</text>
+
+  <!-- 3.3V rail → MCU power -->
+  <line x1="300" y1="440" x2="300" y2="540" stroke="#4fc3f7" stroke-width="2"/>
+
+  <!-- ================================================================ -->
+  <!-- SOIL SENSORS (left of MCU) -->
+  <!-- ================================================================ -->
+
+  <!-- Soil Sensor 1 -->
+  <rect x="40" y="630" width="150" height="55" rx="5" fill="none" stroke="#66bb6a" stroke-width="1.5"/>
+  <text x="115" y="655" text-anchor="middle" fill="#66bb6a" font-size="13" font-family="Courier New">Soil Sensor 1</text>
+  <text x="115" y="673" text-anchor="middle" fill="#aaa" font-size="10" font-family="Courier New">SEN0193</text>
+  <line x1="190" y1="660" x2="300" y2="660" stroke="#66bb6a" stroke-width="2"/>
+  <!-- 1uF cap -->
+  <rect x="220" y="672" width="42" height="18" rx="2" fill="none" stroke="#4fc3f7" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="241" y="685" text-anchor="middle" fill="#4fc3f7" font-size="9" font-family="Courier New">1µF</text>
+
+  <!-- Soil Sensor 2 -->
+  <rect x="40" y="720" width="150" height="55" rx="5" fill="none" stroke="#66bb6a" stroke-width="1.5"/>
+  <text x="115" y="745" text-anchor="middle" fill="#66bb6a" font-size="13" font-family="Courier New">Soil Sensor 2</text>
+  <text x="115" y="763" text-anchor="middle" fill="#aaa" font-size="10" font-family="Courier New">SEN0193</text>
+  <line x1="190" y1="745" x2="240" y2="745" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="240" y1="745" x2="240" y2="700" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="240" y1="700" x2="300" y2="700" stroke="#66bb6a" stroke-width="2"/>
+  <!-- 1uF cap -->
+  <rect x="220" y="756" width="42" height="18" rx="2" fill="none" stroke="#4fc3f7" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="241" y="769" text-anchor="middle" fill="#4fc3f7" font-size="9" font-family="Courier New">1µF</text>
+
+  <!-- ================================================================ -->
+  <!-- BATTERY VOLTAGE DIVIDER (far left, below sensors) -->
+  <!-- ================================================================ -->
+  <g transform="translate(80, 870)">
+    <text x="70" y="0" text-anchor="middle" fill="#ff8a65" font-size="13" font-family="Courier New" font-weight="bold">Battery Monitor</text>
+
+    <text x="70" y="22" text-anchor="middle" fill="#ff8a65" font-size="10" font-family="Courier New">3.7V</text>
+    <line x1="70" y1="28" x2="70" y2="42" stroke="#ff8a65" stroke-width="2"/>
+
+    <rect x="46" y="42" width="48" height="22" rx="3" fill="none" stroke="#ff8a65" stroke-width="1.5"/>
+    <text x="70" y="57" text-anchor="middle" fill="#ff8a65" font-size="10" font-family="Courier New">100K</text>
+
+    <line x1="70" y1="64" x2="70" y2="82" stroke="#66bb6a" stroke-width="2"/>
+    <circle cx="70" cy="82" r="4" fill="#66bb6a"/>
+
+    <line x1="74" y1="82" x2="220" y2="82" stroke="#66bb6a" stroke-width="2"/>
+    <line x1="220" y1="82" x2="220" y2="-130" stroke="#66bb6a" stroke-width="2"/>
+    <text x="140" y="75" fill="#66bb6a" font-size="10" font-family="Courier New">→ A2</text>
+
+    <rect x="46" y="90" width="48" height="22" rx="3" fill="none" stroke="#888" stroke-width="1.5"/>
+    <text x="70" y="105" text-anchor="middle" fill="#888" font-size="10" font-family="Courier New">100K</text>
+
+    <line x1="70" y1="112" x2="70" y2="132" stroke="#888" stroke-width="2"/>
+    <line x1="55" y1="132" x2="85" y2="132" stroke="#888" stroke-width="2"/>
+    <line x1="59" y1="137" x2="81" y2="137" stroke="#888" stroke-width="1.5"/>
+    <line x1="63" y1="142" x2="77" y2="142" stroke="#888" stroke-width="1"/>
+  </g>
+
+  <!-- ================================================================ -->
+  <!-- SOLENOID DRIVE (far right, lots of space) -->
+  <!-- ================================================================ -->
+
+  <!-- 12V rail down to solenoid -->
+  <line x1="1200" y1="440" x2="1200" y2="510" stroke="#ef5350" stroke-width="2.5"/>
+  <text x="1200" y="500" text-anchor="middle" fill="#ef5350" font-size="11" font-family="Courier New">12V</text>
+
+  <!-- SOLENOID -->
+  <rect x="1140" y="510" width="120" height="65" rx="6" fill="none" stroke="#ef5350" stroke-width="2"/>
+  <text x="1200" y="540" text-anchor="middle" fill="#ef5350" font-size="14" font-family="Courier New" font-weight="bold">Solenoid</text>
+  <text x="1200" y="560" text-anchor="middle" fill="#ef5350" font-size="10" font-family="Courier New">12V  540mA</text>
+
+  <!-- Flyback diode (to the right of solenoid) -->
+  <line x1="1275" y1="520" x2="1275" y2="566" stroke="#e0e0e0" stroke-width="1.5"/>
+  <polygon points="1275,540 1268,553 1282,553" fill="#e0e0e0"/>
+  <line x1="1268" y1="540" x2="1282" y2="540" stroke="#e0e0e0" stroke-width="1.5"/>
+  <!-- connect to solenoid terminals -->
+  <line x1="1260" y1="520" x2="1275" y2="520" stroke="#e0e0e0" stroke-width="1"/>
+  <line x1="1260" y1="566" x2="1275" y2="566" stroke="#e0e0e0" stroke-width="1"/>
+  <text x="1298" y="542" fill="#e0e0e0" font-size="11" font-family="Courier New">1N4007</text>
+  <text x="1298" y="558" fill="#aaa" font-size="9" font-family="Courier New">(flyback)</text>
+
+  <!-- Wire from solenoid bottom to MOSFET drain -->
+  <line x1="1200" y1="575" x2="1200" y2="640" stroke="#ef5350" stroke-width="2"/>
+
+  <!-- DRAIN label -->
+  <text x="1200" y="636" text-anchor="middle" fill="#ef5350" font-size="13" font-family="Courier New" font-weight="bold">DRAIN</text>
+
+  <!-- MOSFET -->
+  <rect x="1140" y="650" width="130" height="110" rx="6" fill="none" stroke="#e0e0e0" stroke-width="2.5"/>
+  <text x="1205" y="685" text-anchor="middle" fill="#e0e0e0" font-size="15" font-family="Courier New" font-weight="bold">IRLZ44N</text>
+  <text x="1205" y="708" text-anchor="middle" fill="#aaa" font-size="12" font-family="Courier New">N-ch MOSFET</text>
+
+  <!-- GATE label + dot on left side -->
+  <text x="1125" y="725" text-anchor="end" fill="#66bb6a" font-size="14" font-family="Courier New" font-weight="bold">GATE</text>
+  <circle cx="1140" cy="720" r="5" fill="#66bb6a"/>
+
+  <!-- SOURCE label -->
+  <text x="1205" y="775" text-anchor="middle" fill="#888" font-size="13" font-family="Courier New" font-weight="bold">SOURCE</text>
+
+  <!-- Source to GND -->
+  <line x1="1205" y1="760" x2="1205" y2="800" stroke="#888" stroke-width="2.5"/>
+  <line x1="1190" y1="800" x2="1220" y2="800" stroke="#888" stroke-width="2"/>
+  <line x1="1193" y1="806" x2="1217" y2="806" stroke="#888" stroke-width="1.5"/>
+  <line x1="1196" y1="812" x2="1214" y2="812" stroke="#888" stroke-width="1"/>
+  <text x="1205" y="832" text-anchor="middle" fill="#888" font-size="11" font-family="Courier New">GND</text>
+
+  <!-- GATE RESISTOR 220Ω -->
+  <line x1="1140" y1="720" x2="1060" y2="720" stroke="#66bb6a" stroke-width="2"/>
+  <rect x="980" y="708" width="70" height="24" rx="3" fill="none" stroke="#66bb6a" stroke-width="1.5"/>
+  <text x="1015" y="724" text-anchor="middle" fill="#66bb6a" font-size="11" font-family="Courier New">220Ω</text>
+
+  <!-- Wire from 220Ω back toward MCU D2 -->
+  <line x1="980" y1="720" x2="900" y2="720" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="900" y1="720" x2="900" y2="660" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="900" y1="660" x2="640" y2="660" stroke="#66bb6a" stroke-width="2"/>
+
+  <!-- GATE PULL-DOWN 10K -->
+  <line x1="1090" y1="720" x2="1090" y2="770" stroke="#66bb6a" stroke-width="1.5"/>
+  <circle cx="1090" cy="720" r="3" fill="#66bb6a"/>
+  <rect x="1070" y="770" width="44" height="22" rx="3" fill="none" stroke="#888" stroke-width="1.5"/>
+  <text x="1092" y="785" text-anchor="middle" fill="#888" font-size="10" font-family="Courier New">10K</text>
+  <text x="1060" y="785" text-anchor="end" fill="#aaa" font-size="9" font-family="Courier New">pull-down</text>
+  <line x1="1092" y1="792" x2="1092" y2="812" stroke="#888" stroke-width="1.5"/>
+  <line x1="1079" y1="812" x2="1105" y2="812" stroke="#888" stroke-width="2"/>
+  <line x1="1082" y1="817" x2="1102" y2="817" stroke="#888" stroke-width="1.5"/>
+  <line x1="1085" y1="822" x2="1099" y2="822" stroke="#888" stroke-width="1"/>
+
+  <!-- Solenoid Drive title -->
+  <text x="1200" y="480" text-anchor="middle" fill="#e0e0e0" font-size="16" font-family="Courier New" font-weight="bold">Solenoid Drive Circuit</text>
+
+  <!-- ================================================================ -->
+  <!-- LEDs (below MCU, spread out) -->
+  <!-- ================================================================ -->
+
+  <!-- GREEN LED -->
+  <g transform="translate(700, 940)">
+    <text x="-15" y="5" text-anchor="end" fill="#66bb6a" font-size="12" font-family="Courier New">D3 (PB3) →</text>
+    <rect x="0" y="-10" width="55" height="22" rx="3" fill="none" stroke="#66bb6a" stroke-width="1.5"/>
+    <text x="27" y="6" text-anchor="middle" fill="#66bb6a" font-size="11" font-family="Courier New">330Ω</text>
+    <line x1="55" y1="1" x2="85" y2="1" stroke="#66bb6a" stroke-width="2"/>
+    <polygon points="85,-10 85,12 106,1" fill="none" stroke="#66bb6a" stroke-width="1.5"/>
+    <line x1="106" y1="-10" x2="106" y2="12" stroke="#66bb6a" stroke-width="2"/>
+    <line x1="94" y1="-14" x2="98" y2="-22" stroke="#66bb6a" stroke-width="1"/>
+    <line x1="100" y1="-16" x2="104" y2="-24" stroke="#66bb6a" stroke-width="1"/>
+    <text x="125" y="6" fill="#66bb6a" font-size="13" font-family="Courier New" font-weight="bold">GREEN</text>
+    <line x1="106" y1="1" x2="190" y2="1" stroke="#888" stroke-width="1.5"/>
+    <text x="200" y="6" fill="#888" font-size="10" font-family="Courier New">→ GND</text>
+  </g>
+
+  <!-- Wire MCU D3 → Green LED -->
+  <line x1="640" y1="700" x2="660" y2="700" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="660" y1="700" x2="660" y2="941" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="660" y1="941" x2="685" y2="941" stroke="#66bb6a" stroke-width="2"/>
+
+  <!-- RED LED -->
+  <g transform="translate(700, 1010)">
+    <text x="-15" y="5" text-anchor="end" fill="#ef5350" font-size="12" font-family="Courier New">D4 (PB5) →</text>
+    <rect x="0" y="-10" width="55" height="22" rx="3" fill="none" stroke="#ef5350" stroke-width="1.5"/>
+    <text x="27" y="6" text-anchor="middle" fill="#ef5350" font-size="11" font-family="Courier New">330Ω</text>
+    <line x1="55" y1="1" x2="85" y2="1" stroke="#ef5350" stroke-width="2"/>
+    <polygon points="85,-10 85,12 106,1" fill="none" stroke="#ef5350" stroke-width="1.5"/>
+    <line x1="106" y1="-10" x2="106" y2="12" stroke="#ef5350" stroke-width="2"/>
+    <line x1="94" y1="-14" x2="98" y2="-22" stroke="#ef5350" stroke-width="1"/>
+    <line x1="100" y1="-16" x2="104" y2="-24" stroke="#ef5350" stroke-width="1"/>
+    <text x="125" y="6" fill="#ef5350" font-size="13" font-family="Courier New" font-weight="bold">RED</text>
+    <line x1="106" y1="1" x2="190" y2="1" stroke="#888" stroke-width="1.5"/>
+    <text x="200" y="6" fill="#888" font-size="10" font-family="Courier New">→ GND</text>
+  </g>
+
+  <!-- Wire MCU D4 → Red LED -->
+  <line x1="640" y1="740" x2="670" y2="740" stroke="#66bb6a" stroke-width="2"/>
+  <line x1="670" y1="740" x2="670" y2="1011" stroke="#ef5350" stroke-width="2"/>
+  <line x1="670" y1="1011" x2="685" y2="1011" stroke="#ef5350" stroke-width="2"/>
+
+  <!-- ================================================================ -->
+  <!-- PIN CONNECTIONS REFERENCE -->
+  <!-- ================================================================ -->
+  <rect x="1350" y="870" width="380" height="340" rx="8" fill="rgba(255,255,255,0.04)" stroke="#555" stroke-width="1"/>
+  <text x="1540" y="905" text-anchor="middle" fill="#e0e0e0" font-size="16" font-family="Courier New" font-weight="bold">Pin Connections</text>
+  <line x1="1375" y1="920" x2="1705" y2="920" stroke="#555" stroke-width="1"/>
+
+  <text x="1380" y="950" fill="#66bb6a" font-size="13" font-family="Courier New">A0 (PA0)  ← Soil Sensor 1</text>
+  <text x="1380" y="978" fill="#66bb6a" font-size="13" font-family="Courier New">A1 (PA1)  ← Soil Sensor 2</text>
+  <text x="1380" y="1006" fill="#ff8a65" font-size="13" font-family="Courier New">A2 (PA4)  ← Vbat/2 divider</text>
+  <text x="1380" y="1040" fill="#66bb6a" font-size="13" font-family="Courier New">D2 (PA10) → 220Ω → MOSFET G</text>
+  <text x="1380" y="1068" fill="#66bb6a" font-size="13" font-family="Courier New">D3 (PB3)  → 330Ω → Green LED</text>
+  <text x="1380" y="1096" fill="#ef5350" font-size="13" font-family="Courier New">D4 (PB5)  → 330Ω → Red LED</text>
+
+  <line x1="1375" y1="1115" x2="1705" y2="1115" stroke="#555" stroke-width="1"/>
+  <text x="1540" y="1145" text-anchor="middle" fill="#e0e0e0" font-size="15" font-family="Courier New" font-weight="bold">Failsafes</text>
+  <text x="1380" y="1172" fill="#aaa" font-size="12" font-family="Courier New">• 10K pull-down on MOSFET gate</text>
+  <text x="1380" y="1196" fill="#aaa" font-size="12" font-family="Courier New">• 1N4007 flyback on solenoid</text>
+
+  <!-- ================================================================ -->
+  <!-- GND BUS -->
+  <!-- ================================================================ -->
+  <line x1="80" y1="1300" x2="1300" y2="1300" stroke="#888" stroke-width="4"/>
+  <text x="690" y="1330" text-anchor="middle" fill="#888" font-size="15" font-family="Courier New" font-weight="bold">GND Bus</text>
+
+  <!-- GND dashes from MCU area -->
+  <line x1="350" y1="880" x2="350" y2="1300" stroke="#888" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <!-- GND dashes from LED area -->
+  <line x1="900" y1="1020" x2="900" y2="1300" stroke="#888" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+</svg>
+</body>
+</html>

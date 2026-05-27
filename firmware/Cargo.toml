@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-embassy-executor = { version = "0.6", features = ["nightly", "arch-cortex-m", "executor-thread", "defmt"] }
-embassy-stm32 = { version = "0.1", features = ["defmt", "stm32f411re", "time-driver-any", "memory-x"] }
-embassy-time = { version = "0.3", features = ["defmt", "defmt-timestamp-uptime"] }
+embassy-executor = { git = "https://github.com/embassy-rs/embassy", features = ["platform-cortex-m", "executor-thread", "defmt"] }
+embassy-stm32 = { git = "https://github.com/embassy-rs/embassy", features = ["defmt", "stm32f411re", "time-driver-any", "memory-x"] }
+embassy-time = { git = "https://github.com/embassy-rs/embassy", features = ["defmt", "defmt-timestamp-uptime"] }
 
 defmt = "0.3"
 defmt-rtt = "0.4"
